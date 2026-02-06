@@ -1,174 +1,82 @@
 import streamlit as st
 from ultralytics import YOLO
 from PIL import Image
-import numpy as np
-import time
+import os
 
-# 1. Page Configuration
-st.set_page_config(
-    page_title="NanbaProject - AI Plant Doctor",
-    page_icon="🌿",
-    layout="wide"
-)
+# --- PAGE CONFIG ---
+st.set_page_config(page_title="YOLO Plant Doctor", page_icon="🌿", layout="centered")
 
-# 2. Custom CSS to match "NanbaProject" Design
+# --- CUSTOM CSS ---
 st.markdown("""
     <style>
-    /* General Background */
-    .stApp {
-        background-color: #ffffff;
-        font-family: 'sans-serif';
-    }
-
-    /* Hero Section Title */
-    .hero-title {
-        font-size: 3.5rem;
-        font-weight: 800;
-        color: #1b5e20; /* Dark Green */
-        text-align: center;
-        margin-bottom: 0px;
-    }
-    .hero-subtitle {
-        font-size: 1.2rem;
-        color: #555;
-        text-align: center;
-        margin-bottom: 30px;
-    }
-    .highlight {
-        color: #00c853; /* Light Green */
-    }
-
-    /* Metrics Cards */
-    .metric-card {
-        background-color: #f1f8e9;
-        border: 1px solid #c5e1a5;
+    .warning-box {
+        background-color: #fff3cd;
+        padding: 15px;
         border-radius: 10px;
-        padding: 20px;
-        text-align: center;
-        box-shadow: 2px 2px 10px rgba(0,0,0,0.05);
+        border-left: 5px solid #ffc107;
+        color: #856404;
     }
-    .metric-value {
-        font-size: 2rem;
-        font-weight: bold;
-        color: #2e7d32;
-    }
-    .metric-label {
-        font-size: 1rem;
-        color: #666;
-    }
-
-    /* Dark Simulation Section */
-    .sim-container {
-        background-color: #0f172a; /* Dark Blue/Black */
-        padding: 40px;
-        border-radius: 15px;
-        color: white;
-        text-align: center;
-        margin-top: 30px;
-    }
-    .sim-title {
-        color: white;
-        font-size: 2rem;
-        font-weight: bold;
-        margin-bottom: 20px;
-    }
-    
-    /* Button Styling */
-    .stButton>button {
-        background-color: #00c853;
-        color: white;
-        border-radius: 20px;
-        font-weight: bold;
-        border: none;
-        padding: 10px 24px;
+    .success-box {
+        background-color: #d4edda;
+        padding: 15px;
+        border-radius: 10px;
+        border-left: 5px solid #155724;
+        color: #155724;
     }
     </style>
-    """, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
-# 3. Hero Section (Title)
-st.markdown('<div class="hero-title">AI-Powered <span class="highlight">Plant Doctor</span></div>', unsafe_allow_html=True)
-st.markdown('<div class="hero-subtitle">The <b>Nanba Project</b> utilizes Convolutional Neural Networks (CNNs) to detect plant leaf diseases in real-time.</div>', unsafe_allow_html=True)
-
-# 4. Metrics Section (Like the Screenshot)
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    st.markdown("""
-    <div class="metric-card">
-        <div class="metric-value">98.5%</div>
-        <div class="metric-label">Model Accuracy</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-with col2:
-    st.markdown("""
-    <div class="metric-card">
-        <div class="metric-value">54,300+</div>
-        <div class="metric-label">Dataset Size</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-with col3:
-    st.markdown("""
-    <div class="metric-card">
-        <div class="metric-value">&lt; 200ms</div>
-        <div class="metric-label">Inference Time</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-st.write("") # Spacer
-st.write("")
-
-# 5. Live Simulation Section (Dark Theme)
-st.markdown('<div class="sim-container"><div class="sim-title">Live Project Simulation</div><p>Experience the Nanba detection engine. Upload a leaf image below.</p></div>', unsafe_allow_html=True)
-
-# Load Model
+# --- LOAD MODEL ---
 @st.cache_resource
 def load_model():
-    return YOLO('best.pt')
+    model_path = 'best.pt'
+    if not os.path.exists(model_path):
+        st.error("❌ Error: 'best.pt' file not found! Please upload it to GitHub.")
+        return None
+    return YOLO(model_path)
 
-try:
-    model = load_model()
-except Exception as e:
-    st.error(f"Model not found! Make sure 'best.pt' is in the folder.")
+model = load_model()
 
-# File Uploader (Centered)
-col_spacer1, col_main, col_spacer2 = st.columns([1, 2, 1])
+# --- MAIN APP ---
+st.title("🌿 Advanced Plant Disease Detector (YOLOv8)")
+st.write("தக்காளி, உருளைக்கிழங்கு, மிளகாய் செடிகளில் உள்ள நோய்களைத் துல்லியமாக கண்டறியும் AI.")
 
-with col_main:
-    uploaded_file = st.file_uploader("", type=["jpg", "jpeg", "png"])
+uploaded_file = st.file_uploader("இலையின் படத்தை இங்கே பதிவேற்றவும்...", type=["jpg", "png", "jpeg"])
 
-    if uploaded_file is not None:
-        image = Image.open(uploaded_file)
-        
-        # Display Image inside the "Dark Mode" feel
-        st.image(image, caption="Uploaded Sample", use_column_width=True)
-
-        if st.button("🔍 Run Diagnosis"):
-            with st.spinner("Processing with MobileNetV2 pipeline..."):
-                time.sleep(1) # Small delay for effect
-                img_array = np.array(image)
-                results = model.predict(img_array)
+if uploaded_file is not None:
+    image = Image.open(uploaded_file)
+    st.image(image, caption='Uploaded Image', use_column_width=True)
+    
+    if st.button('🔍 Scan Now'):
+        if model:
+            with st.spinner('Scanning with YOLO AI...'):
+                # YOLO Prediction
+                results = model(image)
                 
-                # Result Display
-                if len(results[0].boxes) > 0:
-                    box = results[0].boxes[0]
-                    class_id = int(box.cls[0])
-                    conf = float(box.conf[0])
-                    disease_name = model.names[class_id]
-
-                    # Custom Success Message
-                    st.balloons()
-                    st.markdown(f"""
-                        <div style="background-color: #d1e7dd; color: #0f5132; padding: 20px; border-radius: 10px; text-align: center; margin-top: 20px;">
-                            <h2 style="margin:0;">✅ Detected: {disease_name.upper()}</h2>
-                            <p style="margin:0;">Confidence Score: <b>{conf*100:.1f}%</b></p>
-                        </div>
+                # --- RESULT CHECKING ---
+                # பாக்ஸ் (Boxes) எதுவும் இல்லை என்றால் -> நோய்/இலை இல்லை
+                if len(results[0].boxes) == 0:
+                    st.markdown("""
+                    <div class="warning-box">
+                        ⚠️ <b>எந்த நோயும் கண்டுபிடிக்கப்படவில்லை!</b><br>
+                        1. இது ஆரோக்கியமான இலையாக இருக்கலாம்.<br>
+                        2. அல்லது மாடலுக்குத் தெரியாத இலையாக இருக்கலாம் (Out of Scope).<br>
+                        3. படம் தெளிவாக உள்ளதா எனப் பார்க்கவும்.
+                    </div>
                     """, unsafe_allow_html=True)
+                
                 else:
-                    st.warning("⚠️ No disease detected. Try a closer image.")
+                    # பாக்ஸ் போடப்பட்ட படத்தை உருவாக்குதல் & காட்டுதல்
+                    res_plotted = results[0].plot()
+                    st.markdown('<div class="success-box">✅ குறைபாடுகள் கண்டறியப்பட்டன!</div>', unsafe_allow_html=True)
+                    st.image(res_plotted, caption="AI Detection Result", use_column_width=True)
+                    
+                    # விவரங்கள்
+                    st.write("---")
+                    st.subheader("📋 கண்டறியப்பட்ட விவரங்கள்:")
+                    for box in results[0].boxes:
+                        class_name = model.names[int(box.cls[0])]
+                        conf = float(box.conf[0]) * 100
+                        st.write(f"🦠 **{class_name}** - {conf:.1f}% Confidence")
 
-# 6. Methodology Footer (Optional)
-st.markdown("---")
-st.markdown("<div style='text-align: center; color: grey;'>© 2026 NanbaProject Research | Powered by YOLOv8 & Streamlit</div>", unsafe_allow_html=True)
 
