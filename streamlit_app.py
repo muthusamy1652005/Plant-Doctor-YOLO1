@@ -226,7 +226,57 @@ elif page == "🚀 Live Simulation":
                         filtered_results = []
                         names = model.names
                         
-                        # --- DEBUGGING INFO (Optional - can be removed
+                        # --- DEBUGGING INFO (Optional - can be removed) ---
+                        # st.write(f"Detected Classes: {[names[int(b.cls[0])] for b in results[0].boxes]}") 
+
+                        if len(results[0].boxes) > 0:
+                            for box in results[0].boxes:
+                                cls_name = names[int(box.cls[0])]
+                                
+                                # Filtering Logic
+                                match = False
+                                if selected_crop == "All (எல்லா பயிர்களும்)": match = True
+                                elif "tomato" in cls_name.lower() and "Tomato" in selected_crop: match = True
+                                elif "potato" in cls_name.lower() and "Potato" in selected_crop: match = True
+                                elif "pepper" in cls_name.lower() and "Pepper" in selected_crop: match = True
+                                
+                                if match:
+                                    filtered_results.append((box, cls_name))
+                                    found = True
+                        
+                        if not found:
+                            st.warning(f"⚠️ {selected_crop} நோய் எதுவும் கண்டறியப்படவில்லை.")
+                            st.info("சரியான பயிரைத் தேர்ந்தெடுக்கவும் அல்லது தெளிவான படத்தை பதிவேற்றவும்.")
+                        else:
+                            res_plot = results[0].plot()
+                            st.image(res_plot, caption="AI Detection", use_column_width=True)
+                            
+                            for box, name in filtered_results:
+                                conf = float(box.conf[0]) * 100
+                                # Get info from dictionary (Try Exact Match first)
+                                info = disease_info.get(name)
+                                
+                                # If exact match fails, try case-insensitive lookup
+                                if not info:
+                                    for key in disease_info:
+                                        if key.lower() == name.lower():
+                                            info = disease_info[key]
+                                            break
+                                
+                                if info:
+                                    status_color = "#d32f2f" if info['status'] == "Diseased" else "#2e7d32"
+                                    st.markdown(f"""
+                                    <div class="result-box">
+                                        <h3 style="color:{status_color}; margin:0;">{info['name']}</h3>
+                                        <p style="color:gray;">Confidence: {conf:.1f}%</p>
+                                        <hr>
+                                        <p><b>📌 விளக்கம்:</b> {info['description']}</p>
+                                        <p><b>💡 தீர்வு:</b> {info['solution']}</p>
+                                    </div>
+                                    """, unsafe_allow_html=True)
+                                else:
+                                    st.warning(f"Info missing for: {name} (Please update database)")
+
 
 
 
