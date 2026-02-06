@@ -234,7 +234,106 @@ elif page == "📊 Performance":
     # Data for Charts
     chart_data = pd.DataFrame({
         'Model': ['CNN', 'Nanba (YOLOv8)', 'VGG16'],
-        'Accuracy':
+        'Accuracy': [92, 99.5, 96],
+        'Speed': [340, 15, 800]
+    }).set_index('Model')
+    
+    with col1:
+        st.subheader("Accuracy")
+        st.bar_chart(chart_data['Accuracy'], color="#2e7d32") # Green bars
+        
+    with col2:
+        st.subheader("Speed (ms)")
+        st.line_chart(chart_data['Speed']) # Line chart
+
+# ==========================================
+# PAGE 4: LIVE SIMULATION (Functionality Merged)
+# ==========================================
+elif page == "🚀 Live Simulation":
+    st.markdown("<h1>🌿 Live Disease Detection</h1>", unsafe_allow_html=True)
+    
+    st.write("முதலில் **பயிரைத் (Crop)** தேர்ந்தெடுத்து, பின் இலையின் படத்தை பதிவேற்றம் செய்யவும்.")
+    
+    # 1. Radio Buttons (Horizontal as in Screenshot)
+    st.markdown("👉 **எந்தப் பயிரைப் பரிசோதிக்க வேண்டும்?**")
+    selected_crop = st.radio(
+        "",
+        ["Tomato (தக்காளி)", "Potato (உருளைக்கிழங்கு)", "Pepper (மிளகாய்)", "All (எல்லா பயிர்களும்)"],
+        horizontal=True
+    )
+    
+    st.write("")
+    
+    # 2. File Uploader
+    st.markdown("Upload Leaf Image")
+    uploaded_file = st.file_uploader("", type=["jpg", "png", "jpeg"])
+    
+    if uploaded_file:
+        col1, col2 = st.columns([1, 1])
+        
+        # Display Image
+        image = Image.open(uploaded_file)
+        with col1:
+            st.image(image, caption="Uploaded Image", use_column_width=True)
+        
+        # Logic & Display Result
+        with col2:
+            if st.button("🔍 Scan & Detect", type="primary"):
+                if model is None:
+                    st.error("❌ Model 'best.pt' not found!")
+                else:
+                    with st.spinner("Analyzing..."):
+                        time.sleep(1) # Simulation delay
+                        
+                        # YOLO Prediction
+                        results = model(image, conf=0.3)
+                        
+                        # STRICT FILTER LOGIC
+                        found = False
+                        filtered_results = []
+                        names = model.names
+                        
+                        if len(results[0].boxes) > 0:
+                            for box in results[0].boxes:
+                                cls_name = names[int(box.cls[0])]
+                                
+                                # Filtering
+                                match = False
+                                if selected_crop == "All (எல்லா பயிர்களும்)": match = True
+                                elif "tomato" in cls_name.lower() and "Tomato" in selected_crop: match = True
+                                elif "potato" in cls_name.lower() and "Potato" in selected_crop: match = True
+                                elif "pepper" in cls_name.lower() and "Pepper" in selected_crop: match = True
+                                
+                                if match:
+                                    filtered_results.append((box, cls_name))
+                                    found = True
+                        
+                        # Display Output
+                        if not found:
+                            st.warning(f"⚠️ {selected_crop} நோய் எதுவும் கண்டறியப்படவில்லை.")
+                            st.info("சரியான பயிரைத் தேர்ந்தெடுக்கவும் அல்லது தெளிவான படத்தை பதிவேற்றவும்.")
+                        else:
+                            # Show Bounding Box Image
+                            res_plot = results[0].plot()
+                            st.image(res_plot, caption="AI Detection", use_column_width=True)
+                            
+                            # Show Tamil Report
+                            for box, name in filtered_results:
+                                conf = float(box.conf[0]) * 100
+                                info = disease_info.get(name)
+                                
+                                if info:
+                                    status_color = "#d32f2f" if info['status'] == "Diseased" else "#2e7d32"
+                                    st.markdown(f"""
+                                    <div class="result-box">
+                                        <h3 style="color:{status_color}; margin:0;">{info['name']}</h3>
+                                        <p style="color:gray;">Confidence: {conf:.1f}%</p>
+                                        <hr>
+                                        <p><b>📌 விளக்கம்:</b> {info['description']}</p>
+                                        <p><b>💡 தீர்வு:</b> {info['solution']}</p>
+                                    </div>
+                                    """, unsafe_allow_html=True)
+
 
 
 
