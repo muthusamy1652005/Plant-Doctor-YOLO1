@@ -1,80 +1,158 @@
 import streamlit as st
 from ultralytics import YOLO
 from PIL import Image
-import os
+import cv2
+import numpy as np
 
-# --- PAGE CONFIG ---
-st.set_page_config(page_title="YOLO Plant Doctor", page_icon="🌿", layout="centered")
+# 1. Page Configuration (Must be the first line)
+st.set_page_config(
+    page_title="AgroAI - Plant Disease Detector",
+    page_icon="🌿",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-# --- CUSTOM CSS ---
+# 2. Custom CSS for Modern UI
 st.markdown("""
     <style>
-    .warning-box {
-        background-color: #fff3cd;
-        padding: 15px;
-        border-radius: 10px;
-        border-left: 5px solid #ffc107;
-        color: #856404;
+    /* Main Background with Soft Gradient */
+    .stApp {
+        background: linear-gradient(to right, #e0f7fa, #e8f5e9);
     }
-    .success-box {
-        background-color: #d4edda;
-        padding: 15px;
+    
+    /* Header Style */
+    .main-title {
+        font-size: 3rem;
+        color: #2e7d32;
+        text-align: center;
+        font-weight: bold;
+        text-shadow: 2px 2px 4px #cccccc;
+        margin-bottom: 20px;
+    }
+    
+    /* Subheader */
+    .sub-title {
+        font-size: 1.5rem;
+        color: #455a64;
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    /* Result Card Style */
+    .result-card {
+        background-color: white;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+        text-align: center;
+        margin-top: 20px;
+    }
+    
+    /* Success Text */
+    .success-text {
+        color: #2e7d32;
+        font-size: 24px;
+        font-weight: bold;
+    }
+    
+    /* Warning Text */
+    .warning-text {
+        color: #d32f2f;
+        font-size: 20px;
+        font-weight: bold;
+    }
+    
+    /* Button Style */
+    .stButton>button {
+        background-color: #2e7d32;
+        color: white;
         border-radius: 10px;
-        border-left: 5px solid #155724;
-        color: #155724;
+        height: 50px;
+        width: 100%;
+        font-size: 18px;
     }
     </style>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
-# --- LOAD MODEL ---
+# 3. Sidebar Content
+with st.sidebar:
+    st.image("https://cdn-icons-png.flaticon.com/512/628/628283.png", width=100)
+    st.title("AgroAI Control Panel")
+    st.info("This AI tool helps farmers detect diseases in Tomato, Potato, and Pepper plants instantly.")
+    st.markdown("---")
+    confidence_threshold = st.slider("🤖 AI Confidence Threshold", 0.0, 1.0, 0.4, 0.05)
+    st.write("Higher value = More strict detection.")
+
+# 4. Main Page Content
+st.markdown('<div class="main-title">🌿 Intelligent Plant Disease Detector</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-title">Upload a leaf image to get instant diagnosis and cure suggestions.</div>', unsafe_allow_html=True)
+
+# 5. Load Model
 @st.cache_resource
 def load_model():
-    model_path = 'best.pt'
-    if not os.path.exists(model_path):
-        st.error("❌ Error: 'best.pt' file not found! Please upload it to GitHub.")
-        return None
-    return YOLO(model_path)
+    return YOLO('best.pt') # Ensure best.pt is in the same folder
 
-model = load_model()
+try:
+    model = load_model()
+except Exception as e:
+    st.error(f"Error loading model: {e}")
 
-# --- MAIN APP ---
-st.title("🌿 Advanced Plant Disease Detector (YOLOv8)")
-st.write("தக்காளி, உருளைக்கிழங்கு, மிளகாய் செடிகளில் உள்ள நோய்களைத் துல்லியமாக கண்டறியும் AI.")
-
-uploaded_file = st.file_uploader("இலையின் படத்தை இங்கே பதிவேற்றவும்...", type=["jpg", "png", "jpeg"])
+# 6. File Uploader
+uploaded_file = st.file_uploader("📂 Choose a plant leaf image...", type=["jpg", "jpeg", "png"])
 
 if uploaded_file is not None:
-    image = Image.open(uploaded_file)
-    st.image(image, caption='Uploaded Image', use_column_width=True)
-    
-    if st.button('🔍 Scan Now'):
-        if model:
-            with st.spinner('Scanning with YOLO AI...'):
-                # YOLO Prediction
-                results = model(image)
+    # Layout: Two Columns (Left: Image, Right: Results)
+    col1, col2 = st.columns([1, 1])
+
+    with col1:
+        st.markdown("### 📸 Your Image")
+        image = Image.open(uploaded_file)
+        st.image(image, use_column_width=True, caption="Uploaded Leaf")
+
+    with col2:
+        st.markdown("### 🩺 AI Diagnosis")
+        
+        # Add a spinner while processing
+        with st.spinner('🔍 Analyzing leaf patterns...'):
+            # Convert to format suitable for YOLO
+            img_array = np.array(image)
+            results = model.predict(img_array, conf=confidence_threshold)
+
+            # --- PREDICTION LOGIC ---
+            if len(results[0].boxes) > 0:
+                box = results[0].boxes[0]
+                class_id = int(box.cls[0])
+                conf = float(box.conf[0])
+                disease_name = model.names[class_id]
                 
-                # --- RESULT CHECKING ---
-                # பாக்ஸ் (Boxes) எதுவும் இல்லை என்றால் -> நோய்/இலை இல்லை
-                if len(results[0].boxes) == 0:
-                    st.markdown("""
-                    <div class="warning-box">
-                        ⚠️ <b>எந்த நோயும் கண்டுபிடிக்கப்படவில்லை!</b><br>
-                        1. இது ஆரோக்கியமான இலையாக இருக்கலாம்.<br>
-                        2. அல்லது மாடலுக்குத் தெரியாத இலையாக இருக்கலாம் (Out of Scope).<br>
-                        3. படம் தெளிவாக உள்ளதா எனப் பார்க்கவும்.
-                    </div>
-                    """, unsafe_allow_html=True)
-                
+                # --- SAFETY FILTER LOGIC (Strict Mode) ---
+                # "Potato" என வந்தால் "Tomato" என மாற்றும் லாஜிக் (தேவைப்பட்டால் மட்டும்)
+                if "Potato" in disease_name and "Tomato" not in disease_name:
+                    # பயனர் தக்காளி என்று நினைத்தால் இதை மாற்றிக்கொள்ளலாம்
+                    pass 
+
+                # Display Result in a nice card
+                st.markdown(f"""
+                <div class="result-card">
+                    <p style="color:gray;">Detected Issue:</p>
+                    <p class="success-text">{disease_name.upper()}</p>
+                    <p>Confidence: <b>{conf*100:.1f}%</b></p>
+                </div>
+                """, unsafe_allow_html=True)
+
+                # Show Cure/Solution (Example Logic)
+                st.markdown("### 💊 Recommended Cure:")
+                if "blight" in disease_name.lower():
+                    st.info("Use **Fungicides** like Mancozeb or Chlorothalonil. Remove infected leaves immediately.")
+                elif "healthy" in disease_name.lower():
+                    st.success("The plant looks healthy! Keep maintaining good watering habits. ✅")
                 else:
-                    # பாக்ஸ் போடப்பட்ட படத்தை உருவாக்குதல் & காட்டுதல்
-                    res_plotted = results[0].plot()
-                    st.markdown('<div class="success-box">✅ குறைபாடுகள் கண்டறியப்பட்டன!</div>', unsafe_allow_html=True)
-                    st.image(res_plotted, caption="AI Detection Result", use_column_width=True)
-                    
-                    # விவரங்கள்
-                    st.write("---")
-                    st.subheader("📋 கண்டறியப்பட்ட விவரங்கள்:")
-                    for box in results[0].boxes:
-                        class_name = model.names[int(box.cls[0])]
-                        conf = float(box.conf[0]) * 100
-                        st.write(f"🦠 **{class_name}** - {conf:.1f}% Confidence")
+                    st.warning("Consult a local agriculture expert for specific pesticide recommendations.")
+                
+            else:
+                st.markdown("""
+                <div class="result-card">
+                    <p class="warning-text">⚠️ No Disease Detected</p>
+                    <p>Try uploading a clearer image or moving closer to the leaf.</p>
+                </div>
+                """, unsafe_allow_html=True)
