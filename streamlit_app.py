@@ -3,74 +3,103 @@ from ultralytics import YOLO
 from PIL import Image
 import os
 import pandas as pd
-import numpy as np
 import time
 
 # --- 1. PAGE CONFIGURATION ---
 st.set_page_config(
-    page_title="NanbaProject - AI Plant Doctor",
+    page_title="NanbaProject - Final Year Project",
     page_icon="🌿",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# --- 2. ADVANCED CSS (Professional UI) ---
+# --- 2. EXACT UI STYLING (CSS) ---
 st.markdown("""
     <style>
-    /* General Settings */
-    .stApp { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
-    
-    /* Header Styling */
-    .main-title { font-size: 3rem; color: #1b5e20; font-weight: 800; text-align: center; }
-    .sub-title { font-size: 1.2rem; color: #555; text-align: center; margin-bottom: 20px; }
-    
-    /* Sidebar */
-    [data-testid="stSidebar"] { background-color: #1b5e20; }
-    [data-testid="stSidebar"] * { color: white !important; }
-    
-    /* Metric Cards (Home Page) */
-    .metric-card {
-        background: white;
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        text-align: center;
-        border-bottom: 5px solid #2e7d32;
+    /* Main Background - Clean White */
+    .stApp {
+        background-color: #ffffff;
+        font-family: 'sans-serif';
     }
-    .metric-value { font-size: 2rem; font-weight: bold; color: #1b5e20; }
-    .metric-label { font-size: 1rem; color: #666; }
-
-    /* Result Report Box */
-    .report-box {
-        background-color: white;
-        border: 1px solid #e0e0e0;
-        padding: 25px;
-        border-radius: 15px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    
+    /* Sidebar Background - Light Green (Matches Screenshot) */
+    [data-testid="stSidebar"] {
+        background-color: #e8f5e9;
+        border-right: 1px solid #c8e6c9;
+    }
+    
+    /* Sidebar Text Styling */
+    .sidebar-title {
+        font-size: 24px;
+        font-weight: bold;
+        color: #2e7d32;
+        margin-bottom: 5px;
+    }
+    .sidebar-subtitle {
+        font-size: 16px;
+        font-weight: bold;
+        color: #1b5e20;
+        margin-bottom: 20px;
+    }
+    
+    /* Developer Box in Sidebar */
+    .dev-box {
+        background-color: #d1e7dd; /* Light Blueish Green */
+        padding: 15px;
+        border-radius: 10px;
+        border: 1px solid #badbcc;
+        color: #0f5132;
+        font-size: 14px;
         margin-top: 20px;
-        border-left: 8px solid #2e7d32;
     }
-    .disease-title { font-size: 24px; font-weight: bold; color: #d32f2f; margin-bottom: 10px; }
-    .healthy-title { font-size: 24px; font-weight: bold; color: #388e3c; margin-bottom: 10px; }
-    .conf-score { font-size: 14px; color: gray; margin-bottom: 15px; }
-    .section-title { font-weight: bold; color: #1b5e20; margin-top: 10px; }
-    
-    /* Button Style */
-    div.stButton > button {
-        background-color: #1b5e20;
-        color: white;
-        font-size: 18px;
-        padding: 10px;
+
+    /* Home Page Metric Cards */
+    .metric-card {
+        background-color: #f1f8e9; /* Very Light Green */
+        border: 1px solid #c5e1a5;
+        border-radius: 10px;
+        padding: 25px;
+        text-align: center;
+        box-shadow: 2px 2px 5px rgba(0,0,0,0.05);
+    }
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #2e7d32;
+    }
+    .metric-label {
+        font-size: 1rem;
+        color: #555;
+    }
+
+    /* Methodology Colored Boxes (Matches Screenshot) */
+    .method-box {
+        padding: 20px;
         border-radius: 8px;
-        border: none;
-        width: 100%;
-        transition: 0.3s;
+        margin-bottom: 20px;
+        font-weight: bold;
     }
-    div.stButton > button:hover { background-color: #2e7d32; }
+    .box-blue { background-color: #e3f2fd; color: #0d47a1; border-left: 5px solid #2196f3; }
+    .box-yellow { background-color: #fffde7; color: #f57f17; border-left: 5px solid #ffeb3b; }
+    .box-green { background-color: #e8f5e9; color: #1b5e20; border-left: 5px solid #4caf50; }
+    .box-red { background-color: #ffebee; color: #b71c1c; border-left: 5px solid #f44336; }
+
+    /* Result Box Styling */
+    .result-box {
+        background-color: #ffffff;
+        border: 1px solid #ddd;
+        border-left: 5px solid #2e7d32;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    /* Headings */
+    h1, h2, h3 { color: #2e7d32; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. TAMIL DISEASE DATABASE (As provided by you) ---
+# --- 3. TAMIL DISEASE DATABASE ---
 disease_info = {
     # TOMATO
     "Tomato_Early_Blight": { "name": "தக்காளி - கருகல் நோய் (Early Blight)", "status": "Diseased", "description": "இலைகளில் வளைய வடிவில் பழுப்பு நிறப் புள்ளிகள் தோன்றும். இது செடியின் அடிப்பகுதியில் தொடங்கி மேலே பரவும்.", "solution": "💊 **தீர்வு:** மாங்கோசெப் (Mancozeb) அல்லது குளோரோதலானில் (Chlorothalonil) மருந்தை தெளிக்கவும். பாதிக்கப்பட்ட இலைகளை அகற்றவும்." },
@@ -93,175 +122,120 @@ disease_info = {
     "Pepper__bell___Healthy": { "name": "ஆரோக்கியமான மிளகாய் செடி", "status": "Healthy", "description": "செடி பசுமையாக உள்ளது. காய்கள் நன்றாக வளர்கின்றன.", "solution": "✅ **பராமரிப்பு:** பூச்சி தாக்குதலை கண்காணிக்கவும். நுண்ணூட்டச்சத்து கலவை தெளிக்கவும்." }
 }
 
-# --- 4. LOAD MODEL ---
+# --- 4. MODEL LOADING ---
 @st.cache_resource
 def load_model():
-    model_path = 'best.pt'
-    if not os.path.exists(model_path): return None
-    return YOLO(model_path)
+    if os.path.exists('best.pt'):
+        return YOLO('best.pt')
+    return None
 
 model = load_model()
 
-# --- 5. SIDEBAR NAVIGATION ---
-st.sidebar.image("https://cdn-icons-png.flaticon.com/512/188/188333.png", width=100)
-st.sidebar.title("AgroAI Control")
-st.sidebar.markdown("Final Year Project\n**Dept of ECE/CSE**")
-st.sidebar.markdown("---")
-page = st.sidebar.radio("Navigation", ["🏠 Home / Overview", "🔍 Live Detection", "📖 Methodology", "📊 Performance"])
-
-# ==========================================
-# PAGE 1: HOME (Dashboard Style)
-# ==========================================
-if page == "🏠 Home / Overview":
-    st.markdown('<div class="main-title">NanbaProject: AI Plant Doctor 🌿</div>', unsafe_allow_html=True)
-    st.markdown('<div class="sub-title">Advanced Plant Disease Detection System using YOLOv8</div>', unsafe_allow_html=True)
+# --- 5. SIDEBAR NAVIGATION (Matching Screenshot) ---
+with st.sidebar:
+    # Plant Icon
+    st.image("https://cdn-icons-png.flaticon.com/512/628/628283.png", width=80)
     
-    st.image("https://images.unsplash.com/photo-1599528779427-4c46560965d1?q=80&w=2070&auto=format&fit=crop", use_column_width=True)
+    # Titles
+    st.markdown('<div class="sidebar-title">NanbaProject</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sidebar-subtitle">Final Year Project</div>', unsafe_allow_html=True)
     
-    st.markdown("### 📊 Project Statistics")
-    c1, c2, c3, c4 = st.columns(4)
-    with c1: st.markdown('<div class="metric-card"><div class="metric-value">99.5%</div><div class="metric-label">Accuracy</div></div>', unsafe_allow_html=True)
-    with c2: st.markdown('<div class="metric-card"><div class="metric-value">54k+</div><div class="metric-label">Dataset Images</div></div>', unsafe_allow_html=True)
-    with c3: st.markdown('<div class="metric-card"><div class="metric-value">YOLOv8</div><div class="metric-label">Architecture</div></div>', unsafe_allow_html=True)
-    with c4: st.markdown('<div class="metric-card"><div class="metric-value"><15ms</div><div class="metric-label">Speed</div></div>', unsafe_allow_html=True)
+    st.write("---")
+    
+    # Menu (Radio Buttons)
+    st.markdown("**மெனு (Menu)**")
+    page = st.radio(
+        "", 
+        ["🏠 Home (Overview)", "📖 Methodology", "📊 Performance", "🚀 Live Simulation"],
+        index=0
+    )
+    
+    # Developer Box
+    st.markdown("""
+    <div class="dev-box">
+        <b>Developed by:</b> Muthusamy A &<br>
+        Team Department of ECE/CSE
+    </div>
+    """, unsafe_allow_html=True)
 
 # ==========================================
-# PAGE 2: LIVE DETECTION (The Main Tool)
+# PAGE 1: HOME (Exact Replica)
 # ==========================================
-elif page == "🔍 Live Detection":
-    st.markdown('<div class="main-title">🔍 Live Disease Scanner</div>', unsafe_allow_html=True)
-    st.markdown('<div class="sub-title">Select your crop and upload an image for instant diagnosis</div>', unsafe_allow_html=True)
-
-    # --- Layout: 2 Columns ---
-    col_left, col_right = st.columns([1, 1])
-
-    with col_left:
-        st.markdown("### 1. Configuration")
-        # STRICT MODE SELECTION
-        selected_crop = st.radio(
-            "👇 எந்தப் பயிரைப் பரிசோதிக்க வேண்டும்? (Select Crop)",
-            ["Tomato (தக்காளி)", "Potato (உருளைக்கிழங்கு)", "Pepper (மிளகாய்)", "All (எல்லா பயிர்களும்)"],
-            horizontal=True
-        )
-        
-        st.markdown("---")
-        st.markdown("### 2. Image Upload")
-        uploaded_file = st.file_uploader("Upload Leaf Image (JPG/PNG)", type=["jpg", "png", "jpeg"])
-        
-        if uploaded_file:
-            image = Image.open(uploaded_file)
-            st.image(image, caption="Uploaded Sample", use_column_width=True)
-
-    with col_right:
-        st.markdown("### 3. Diagnosis Results")
-        
-        if uploaded_file and st.button("🚀 Analyze Now"):
-            if model is None:
-                st.error("❌ Model 'best.pt' not found! Please upload the model file.")
-            else:
-                with st.spinner("🤖 AI is analyzing leaf patterns..."):
-                    # Simulation delay
-                    time.sleep(1)
-                    
-                    # YOLO Prediction
-                    results = model(image, conf=0.3) # Confidence threshold 0.3
-                    
-                    # --- STRICT FILTERING LOGIC ---
-                    found_relevant = False
-                    filtered_boxes = []
-                    
-                    if len(results[0].boxes) > 0:
-                        names = model.names
-                        for box in results[0].boxes:
-                            class_id = int(box.cls[0])
-                            class_name = names[class_id]
-                            
-                            # Filtering based on User Selection
-                            is_match = False
-                            if selected_crop == "Tomato (தக்காளி)" and "tomato" in class_name.lower(): is_match = True
-                            elif selected_crop == "Potato (உருளைக்கிழங்கு)" and "potato" in class_name.lower(): is_match = True
-                            elif selected_crop == "Pepper (மிளகாய்)" and "pepper" in class_name.lower(): is_match = True
-                            elif selected_crop == "All (எல்லா பயிர்களும்)": is_match = True
-                            
-                            if is_match:
-                                filtered_boxes.append((box, class_name))
-                                found_relevant = True
-                    
-                    # --- DISPLAY LOGIC ---
-                    if not found_relevant:
-                        st.warning(f"⚠️ **No Match Found:** The AI could not find {selected_crop} disease in this image.")
-                        st.info("Try selecting 'All' option or upload a clearer image.")
-                    else:
-                        # Show Bounding Boxes
-                        res_plotted = results[0].plot()
-                        st.image(res_plotted, use_column_width=True, caption="AI Detection")
-
-                        # Show Detailed Report
-                        for box, final_name in filtered_boxes:
-                            conf = float(box.conf[0]) * 100
-                            # Get Tamil Info
-                            info = disease_info.get(final_name)
-                            
-                            if info:
-                                title_class = "healthy-title" if info['status'] == "Healthy" else "disease-title"
-                                st.markdown(f"""
-                                <div class="report-box">
-                                    <div class="{title_class}">{info['name']}</div>
-                                    <div class="conf-score">Confidence Score: {conf:.1f}%</div>
-                                    <div class="section-title">📌 விளக்கம் (Description):</div>
-                                    <p>{info['description']}</p>
-                                    <div class="section-title">💡 தீர்வு (Solution):</div>
-                                    <p>{info['solution']}</p>
-                                </div>
-                                """, unsafe_allow_html=True)
-                            else:
-                                # Fallback if name not in dictionary
-                                st.error(f"Info missing for: {final_name}")
+if page == "🏠 Home (Overview)":
+    st.markdown("<h1>AI-Powered Plant Doctor 🌿</h1>", unsafe_allow_html=True)
+    
+    # Tamil Subtitle
+    st.markdown("""
+    <h3 style='color:#555; font-weight:normal;'>புரட்சிகரமான விவசாய தொழில்நுட்பம்</h3>
+    <p style='color:grey;'>Nanba Project என்பது YOLOv8 தொழில்நுட்பத்தைப் பயன்படுத்தி பயிர் நோய்களை கண்டறியும் தளமாகும்.</p>
+    """, unsafe_allow_html=True)
+    
+    st.write("") # Spacer
+    
+    # Metrics Cards
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        st.markdown('<div class="metric-card"><div class="metric-value">99.5%</div><div class="metric-label">Model Accuracy</div></div>', unsafe_allow_html=True)
+    with c2:
+        st.markdown('<div class="metric-card"><div class="metric-value">54,300+</div><div class="metric-label">Dataset Size</div></div>', unsafe_allow_html=True)
+    with c3:
+        st.markdown('<div class="metric-card"><div class="metric-value">< 15ms</div><div class="metric-label">Inference Speed</div></div>', unsafe_allow_html=True)
+    
+    st.write("---")
+    # Footer Banner (Ultralytics Image from Screenshot)
+    st.image("https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png", use_column_width=True)
 
 # ==========================================
-# PAGE 3: METHODOLOGY
+# PAGE 2: METHODOLOGY (Exact Colored Boxes)
 # ==========================================
 elif page == "📖 Methodology":
-    st.markdown('<div class="main-title">🔬 Methodology</div>', unsafe_allow_html=True)
+    st.markdown("<h1>🔬 Research Methodology</h1>", unsafe_allow_html=True)
     
-    col1, col2 = st.columns(2)
-    with col1:
+    c1, c2 = st.columns(2)
+    
+    with c1:
         st.markdown("""
-        <div class="metric-card" style="text-align:left;">
-            <h3>1. Data Collection</h3>
-            <p>Utilized the PlantVillage dataset containing 54,306 images of healthy and diseased plant leaves.</p>
-        </div>
-        <div class="metric-card" style="text-align:left; margin-top:20px;">
-            <h3>3. Training</h3>
-            <p>Trained using YOLOv8n (Nano) architecture on Google Colab T4 GPU for 30 Epochs.</p>
+        <div class="method-box box-blue">
+            <p>1. Data Collection</p>
+            <span style="font-weight:normal; font-size:14px;">PlantVillage தரவுத்தொகுப்பு பயன்படுத்தப்பட்டது (54,306 படங்கள்).</span>
         </div>
         """, unsafe_allow_html=True)
         
-    with col2:
         st.markdown("""
-        <div class="metric-card" style="text-align:left;">
-            <h3>2. Preprocessing</h3>
-            <p>Images were resized to 640x640. Augmented using Roboflow (Flip, Rotate, Noise).</p>
+        <div class="method-box box-green">
+            <p>3. Model Training</p>
+            <span style="font-weight:normal; font-size:14px;">Google Colab T4 GPU மூலம் YOLOv8 Nano மாடல் பயிற்சி அளிக்கப்பட்டது.</span>
         </div>
-        <div class="metric-card" style="text-align:left; margin-top:20px;">
-            <h3>4. Deployment</h3>
-            <p>The final model (best.pt) is deployed using Streamlit Cloud for real-time inference.</p>
+        """, unsafe_allow_html=True)
+        
+    with c2:
+        st.markdown("""
+        <div class="method-box box-yellow">
+            <p>2. Preprocessing</p>
+            <span style="font-weight:normal; font-size:14px;">Roboflow மூலம் தரவு தயார் செய்யப்பட்டது (640x640 Resolution).</span>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("""
+        <div class="method-box box-red">
+            <p>4. Deployment</p>
+            <span style="font-weight:normal; font-size:14px;">Streamlit Cloud மூலம் டிப்ளாய் செய்யப்பட்டது.</span>
         </div>
         """, unsafe_allow_html=True)
 
 # ==========================================
-# PAGE 4: PERFORMANCE
+# PAGE 3: PERFORMANCE
 # ==========================================
 elif page == "📊 Performance":
-    st.markdown('<div class="main-title">📈 Model Performance</div>', unsafe_allow_html=True)
+    st.markdown("<h1>📈 Performance Metrics</h1>", unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
-    with col1:
-        st.subheader("Accuracy Comparison")
-        st.bar_chart(pd.DataFrame({'Model': ['Nanba (YOLOv8)', 'CNN', 'VGG16'], 'Accuracy': [99.5, 92.1, 96.8]}).set_index('Model'))
-    with col2:
-        st.subheader("Inference Time (Lower is Better)")
-        st.line_chart(pd.DataFrame({'Model': ['Nanba (YOLOv8)', 'CNN', 'VGG16'], 'Time (ms)': [15, 340, 800]}).set_index('Model'))
+    
+    # Data for Charts
+    chart_data = pd.DataFrame({
+        'Model': ['CNN', 'Nanba (YOLOv8)', 'VGG16'],
+        'Accuracy':
+
 
 
 
