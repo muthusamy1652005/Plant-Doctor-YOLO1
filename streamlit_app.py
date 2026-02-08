@@ -7,7 +7,7 @@ import time
 
 # --- 1. PAGE CONFIGURATION ---
 st.set_page_config(
-    page_title=" AgroVision - muthu",
+    page_title="AgroVision",
     page_icon="🌿",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -21,8 +21,8 @@ st.markdown("""
     
     /* Sidebar */
     [data-testid="stSidebar"] { background-color: #e8f5e9; border-right: 1px solid #c8e6c9; }
-    .sidebar-title { font-size: 24px; font-weight: bold; color: #2e7d32; margin-bottom: 5px; }
-    .sidebar-subtitle { font-size: 16px; font-weight: bold; color: #1b5e20; margin-bottom: 20px; }
+    .sidebar-title { font-size: 28px; font-weight: 800; color: #1b5e20; margin-bottom: 5px; }
+    .sidebar-subtitle { font-size: 16px; font-weight: bold; color: #2e7d32; margin-bottom: 20px; }
     .dev-box { background-color: #d1e7dd; padding: 15px; border-radius: 10px; border: 1px solid #badbcc; color: #0f5132; font-size: 14px; margin-top: 20px; }
 
     /* Cards */
@@ -43,8 +43,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. TAMIL DISEASE DATABASE (CORRECTED KEYS 🛠️) ---
-# மாடலில் இருந்து வரும் பெயர்களுக்கு (Space, Lowercase) ஏற்றவாறு மாற்றப்பட்டுள்ளது.
+# --- 3. TAMIL DISEASE DATABASE ---
 disease_info = {
     # --- TOMATO (தக்காளி) ---
     "Tomato mold leaf": { 
@@ -89,7 +88,7 @@ disease_info = {
         "description": "இலைகள் மஞ்சள் நிறமாகி, மேல் நோக்கி சுருண்டுவிடும். செடியின் வளர்ச்சி குன்றிவிடும்.", 
         "solution": "💊 **தீர்வு:** இது வெள்ளை ஈக்களால் பரவுகிறது. வேப்ப எண்ணெய் அல்லது இமிடாகுளோப்ரிட் தெளிக்கவும்." 
     },
-    "Tomato leaf": { # சில சமயம் ஆரோக்கியமான இலையை இப்படி காட்டும்
+    "Tomato leaf": { 
         "name": "ஆரோக்கியமான தக்காளி செடி (Healthy)", 
         "status": "Healthy", 
         "description": "செடி செழிப்பாகவும், இலைகள் பசுமையாகவும் உள்ளன.", 
@@ -142,22 +141,31 @@ model = load_model()
 
 # --- 5. SIDEBAR NAVIGATION ---
 with st.sidebar:
-    st.image("https://cdn-icons-png.flaticon.com/512/628/628283.png", width=80)
-    st.markdown('<div class="sidebar-title">NanbaProject</div>', unsafe_allow_html=True)
+    # Plant Icon
+    st.image("https://cdn-icons-png.flaticon.com/512/628/628283.png", width=100)
+    
+    # Title & Subtitle (Updated Name)
+    st.markdown('<div class="sidebar-title">AgroVision</div>', unsafe_allow_html=True)
     st.markdown('<div class="sidebar-subtitle">Final Year Project</div>', unsafe_allow_html=True)
+    
     st.write("---")
     
     st.markdown("**மெனு (Menu)**")
     page = st.radio("", ["🏠 Home (Overview)", "📖 Methodology", "📊 Performance", "🚀 Live Simulation"], index=0)
     
+    # Developer Info
     st.markdown('<div class="dev-box"><b>Developed by:</b> Muthusamy A &<br>Team Department of ECE/CSE</div>', unsafe_allow_html=True)
 
 # ==========================================
 # PAGE 1: HOME
 # ==========================================
 if page == "🏠 Home (Overview)":
-    st.markdown("<h1>Powered Plant Doctor 🌿</h1>", unsafe_allow_html=True)
-    st.markdown("<h3 style='color:#555; font-weight:normal;'>புரட்சிகரமான விவசாய தொழில்நுட்பம்</h3><p style='color:grey;'> AgroVision என்பது YOLOv8 தொழில்நுட்பத்தைப் பயன்படுத்தி பயிர் நோய்களை கண்டறியும் தளமாகும்.</p>", unsafe_allow_html=True)
+    st.markdown("<h1>AgroVision: AI Plant Doctor 🌿</h1>", unsafe_allow_html=True)
+    st.markdown("""
+    <h3 style='color:#555; font-weight:normal;'>புரட்சிகரமான விவசாய தொழில்நுட்பம்</h3>
+    <p style='color:grey;'>AgroVision என்பது YOLOv8 தொழில்நுட்பத்தைப் பயன்படுத்தி பயிர் நோய்களை கண்டறியும் நவீன தளமாகும்.</p>
+    """, unsafe_allow_html=True)
+    
     st.write("")
     
     c1, c2, c3 = st.columns(3)
@@ -185,7 +193,7 @@ elif page == "📖 Methodology":
 elif page == "📊 Performance":
     st.markdown("<h1>📈 Performance Metrics</h1>", unsafe_allow_html=True)
     col1, col2 = st.columns(2)
-    chart_data = pd.DataFrame({'Model': ['CNN', 'Nanba (YOLOv8)', 'VGG16'], 'Accuracy': [92, 99.5, 96], 'Speed': [340, 15, 800]}).set_index('Model')
+    chart_data = pd.DataFrame({'Model': ['CNN', 'AgroVision (YOLO)', 'VGG16'], 'Accuracy': [92, 99.5, 96], 'Speed': [340, 15, 800]}).set_index('Model')
     with col1:
         st.subheader("Accuracy")
         st.bar_chart(chart_data['Accuracy'], color="#2e7d32")
@@ -194,7 +202,7 @@ elif page == "📊 Performance":
         st.line_chart(chart_data['Speed'])
 
 # ==========================================
-# PAGE 4: LIVE SIMULATION (Main Logic)
+# PAGE 4: LIVE SIMULATION
 # ==========================================
 elif page == "🚀 Live Simulation":
     st.markdown("<h1>🌿 Live Disease Detection</h1>", unsafe_allow_html=True)
@@ -209,7 +217,9 @@ elif page == "🚀 Live Simulation":
     
     if uploaded_file:
         col1, col2 = st.columns([1, 1])
-        image = Image.open(uploaded_file)
+        # Fix: Convert to RGB
+        image = Image.open(uploaded_file).convert('RGB')
+        
         with col1:
             st.image(image, caption="Uploaded Image", use_column_width=True)
         
@@ -220,21 +230,25 @@ elif page == "🚀 Live Simulation":
                 else:
                     with st.spinner("Analyzing..."):
                         time.sleep(1)
-                        results = model(image, conf=0.3)
+                        # Low Confidence for sensitive detection
+                        results = model(image, conf=0.20)
                         
-                        found = False
-                        filtered_results = []
                         names = model.names
+                        detected_list = []
                         
-                        # --- DEBUGGING INFO (Optional - can be removed) ---
-                        # st.write(f"Detected Classes: {[names[int(b.cls[0])] for b in results[0].boxes]}") 
-
                         if len(results[0].boxes) > 0:
                             for box in results[0].boxes:
+                                detected_list.append(names[int(box.cls[0])])
+                        
+                        # Filter Logic
+                        found = False
+                        filtered_results = []
+                        
+                        if detected_list:
+                            for box in results[0].boxes:
                                 cls_name = names[int(box.cls[0])]
-                                
-                                # Filtering Logic
                                 match = False
+                                
                                 if selected_crop == "All (எல்லா பயிர்களும்)": match = True
                                 elif "tomato" in cls_name.lower() and "Tomato" in selected_crop: match = True
                                 elif "potato" in cls_name.lower() and "Potato" in selected_crop: match = True
@@ -244,24 +258,26 @@ elif page == "🚀 Live Simulation":
                                     filtered_results.append((box, cls_name))
                                     found = True
                         
-                        if not found:
-                            st.warning(f"⚠️ {selected_crop} நோய் எதுவும் கண்டறியப்படவில்லை.")
-                            st.info("சரியான பயிரைத் தேர்ந்தெடுக்கவும் அல்லது தெளிவான படத்தை பதிவேற்றவும்.")
+                        # Display Logic
+                        if not detected_list:
+                             st.warning("⚠️ இந்த படத்தில் எந்த நோயும் தெளிவாகத் தெரியவில்லை.")
+                        
+                        elif not found:
+                            st.error(f"⚠️ எச்சரிக்கை: நீங்கள் '{selected_crop}' தேடினீர்கள்.")
+                            st.write(f"🔍 ஆனால் AI கண்டுபிடித்தது: **{', '.join(set(detected_list))}**")
+                            st.info("சரியான ரிசல்ட்டைப் பார்க்க 'All (எல்லா பயிர்களும்)' ஆப்ஷனை செலக்ட் செய்யவும்.")
+                            
                         else:
                             res_plot = results[0].plot()
                             st.image(res_plot, caption="AgroVision Analysis", use_column_width=True)
                             
                             for box, name in filtered_results:
                                 conf = float(box.conf[0]) * 100
-                                # Get info from dictionary (Try Exact Match first)
-                                info = disease_info.get(name)
-                                
-                                # If exact match fails, try case-insensitive lookup
-                                if not info:
-                                    for key in disease_info:
-                                        if key.lower() == name.lower():
-                                            info = disease_info[key]
-                                            break
+                                info = None
+                                for key in disease_info:
+                                    if key.lower() == name.lower():
+                                        info = disease_info[key]
+                                        break
                                 
                                 if info:
                                     status_color = "#d32f2f" if info['status'] == "Diseased" else "#2e7d32"
@@ -275,7 +291,8 @@ elif page == "🚀 Live Simulation":
                                     </div>
                                     """, unsafe_allow_html=True)
                                 else:
-                                    st.warning(f"Info missing for: {name} (Please update database)")
+                                    st.warning(f"Info missing for: {name}")
+
 
 
 
