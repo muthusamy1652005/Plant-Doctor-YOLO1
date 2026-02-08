@@ -7,7 +7,7 @@ import time
 
 # --- 1. PAGE CONFIGURATION ---
 st.set_page_config(
-    page_title=" AgroVision",
+    page_title=" AgroVision - muthu",
     page_icon="🌿",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -276,6 +276,7 @@ elif page == "🚀 Live Simulation":
                                     """, unsafe_allow_html=True)
                                 else:
                                     st.warning(f"Info missing for: {name} (Please update database)")
+
 
 
 
