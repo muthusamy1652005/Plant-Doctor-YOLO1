@@ -7,7 +7,7 @@ import time
 
 # --- 1. PAGE CONFIGURATION ---
 st.set_page_config(
-    page_title="NanbaProject - Final Year Project",
+    page_title=" AgroVision",
     page_icon="🌿",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -156,8 +156,8 @@ with st.sidebar:
 # PAGE 1: HOME
 # ==========================================
 if page == "🏠 Home (Overview)":
-    st.markdown("<h1>AI-Powered Plant Doctor 🌿</h1>", unsafe_allow_html=True)
-    st.markdown("<h3 style='color:#555; font-weight:normal;'>புரட்சிகரமான விவசாய தொழில்நுட்பம்</h3><p style='color:grey;'>Nanba Project என்பது YOLOv8 தொழில்நுட்பத்தைப் பயன்படுத்தி பயிர் நோய்களை கண்டறியும் தளமாகும்.</p>", unsafe_allow_html=True)
+    st.markdown("<h1>Powered Plant Doctor 🌿</h1>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color:#555; font-weight:normal;'>புரட்சிகரமான விவசாய தொழில்நுட்பம்</h3><p style='color:grey;'> AgroVision என்பது YOLOv8 தொழில்நுட்பத்தைப் பயன்படுத்தி பயிர் நோய்களை கண்டறியும் தளமாகும்.</p>", unsafe_allow_html=True)
     st.write("")
     
     c1, c2, c3 = st.columns(3)
@@ -276,6 +276,7 @@ elif page == "🚀 Live Simulation":
                                     """, unsafe_allow_html=True)
                                 else:
                                     st.warning(f"Info missing for: {name} (Please update database)")
+
 
 
 
