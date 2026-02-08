@@ -249,7 +249,7 @@ elif page == "🚀 Live Simulation":
                             st.info("சரியான பயிரைத் தேர்ந்தெடுக்கவும் அல்லது தெளிவான படத்தை பதிவேற்றவும்.")
                         else:
                             res_plot = results[0].plot()
-                            st.image(res_plot, caption="AI Detection", use_column_width=True)
+                            st.image(res_plot, caption="AgroVision Analysis", use_column_width=True)
                             
                             for box, name in filtered_results:
                                 conf = float(box.conf[0]) * 100
@@ -276,6 +276,7 @@ elif page == "🚀 Live Simulation":
                                     """, unsafe_allow_html=True)
                                 else:
                                     st.warning(f"Info missing for: {name} (Please update database)")
+
 
 
 
