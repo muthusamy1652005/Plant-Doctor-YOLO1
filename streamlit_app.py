@@ -154,7 +154,7 @@ with st.sidebar:
     page = st.radio("", ["🏠 Home (Overview)", "📖 Methodology", "📊 Performance", "🚀 Live Simulation"], index=0)
     
     # Developer Info
-    st.markdown('<div class="dev-box"><b>Developed by:</b> Muthusamy A &<br>Team Department of ECE/CSE</div>', unsafe_allow_html=True)
+    st.markdown('<div class="dev-box"><b>Developed by:</b> Muthusamy A &<br>Team Department of AI&DS</div>', unsafe_allow_html=True)
 
 # ==========================================
 # PAGE 1: HOME
@@ -292,6 +292,7 @@ elif page == "🚀 Live Simulation":
                                     """, unsafe_allow_html=True)
                                 else:
                                     st.warning(f"Info missing for: {name}")
+
 
 
 
